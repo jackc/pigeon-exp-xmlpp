@@ -1,0 +1,36 @@
+{
+package main
+}
+
+Document <- el:Element EOF {
+  return el, nil
+}
+
+Element <- _ oTag:OpeningTag body:(Element / TextNode)* cTag:ClosingTag _ {
+  el := Element{name: oTag.(string)}
+
+  for _, c := range body.([]interface{}) {
+    el.children = append(el.children, c.(prettyPrinter))
+  }
+  return el, nil
+}
+
+OpeningTag <- '<' tag:TagName '>' {
+  return tag, nil
+}
+
+ClosingTag <- "</" tag:TagName '>' {
+  return tag, nil
+}
+
+TagName <- [a-z]i [a-z0-9]i* {
+  return string(c.text), nil
+}
+
+TextNode <- [^<]+ {
+  return TextNode(c.text), nil
+}
+
+_ "whitespace" <- [ \n\t\r]*
+
+EOF <- !.
